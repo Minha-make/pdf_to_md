@@ -1,0 +1,39 @@
+# Python virtual environments & bytecode
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Testing & Linters cache
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local databases & SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Output directories & temporary artifacts
+output/
+tmp/
+temp/
+tests/fixtures/*.pdf
+
+# IDE and OS
+.idea/
+.vscode/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+.DS_Store
