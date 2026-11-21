@@ -346,9 +346,9 @@ def generate_mixed(output_path: Path, font_path: Path) -> Path:
     # Page 3: Pure Scanned Raster image
     p3 = doc.new_page(width=595, height=842)
     img_scan = Image.new("RGB", (1000, 1400), color=(245, 245, 240))
-    draw_scan = ImageDraw.Draw(img_scan)
-    draw_scan.text((80, 100), "BẢN SCAN ĐÍNH KÈM PHỤ LỤC", fill=(40, 40, 40))
-    draw_scan.text((80, 160), "Nội dung hoàn toàn nằm trong ảnh raster.", fill=(60, 60, 60))
+    draw_sc = ImageDraw.Draw(img_scan)
+    draw_sc.text((80, 100), "BẢN SCAN ĐÍNH KÈM PHỤ LỤC", fill=(40, 40, 40))
+    draw_sc.text((80, 160), "Nội dung hoàn toàn nằm trong ảnh raster.", fill=(60, 60, 60))
     buf_scan = BytesIO()
     img_scan.save(buf_scan, format="PNG")
     p3.insert_image(fitz.Rect(0, 0, 595, 842), stream=buf_scan.getvalue())
