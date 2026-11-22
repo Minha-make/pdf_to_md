@@ -4,7 +4,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 0** | Workspace Scaffolding & Synthetic Test Suite | **PASSED** | **100% Passed** (Ruff, Mypy, Pytest) | 2026-11-21 |
 | **Phase 1** | Core Architecture, Inspector, Fast Engine & CLI | **PASSED** | **100% Passed** (26/26 Tests, Gate 1) | 2026-11-21 |
-| **Phase 2** | Deep Layout Engine (Docling), Local VLM & Smart Router | Not Started | Pending | - |
+| **Phase 2** | Deep Layout Engine (Docling), Local VLM & Smart Router | **PASSED** | **100% Passed** (37/37 Tests, Gate 2) | 2026-11-21 |
 | **Phase 3** | Local Backend API, SQLite Storage & Real-time SSE | Not Started | Pending | - |
 | **Phase 4** | Local Web Studio UI (React + Vite + Tailwind) | Not Started | Pending | - |
 | **Phase 5** | Unified Launcher, Packaging & Final Hardening | Not Started | Pending | - |
@@ -31,16 +31,25 @@
 ### Phase 1: Core Architecture, Inspector, Fast Engine & CLI
 - [x] Created `src/omnipdf/config.py` with Pydantic settings.
 - [x] Built `src/omnipdf/core/models.py` with standard Pydantic v2 schemas (`PageProfile`, `PageType`, `ConversionConfig`, `PageResult`, `ConversionResult`) and domain exceptions.
-- [x] Built `src/omnipdf/core/inspector.py` performing per-page heuristic inspection (text density, image coverage ratio, multi-column analysis, table detection, garbled encoding checks, and AES password validation).
-- [x] Built Strategy Pattern base `src/omnipdf/core/engines/base.py` and Tier 1 `src/omnipdf/core/engines/fast_pymupdf.py` with asset image extraction (`assets/p{page:04d}_img{idx:02d}.png`).
-- [x] Built `src/omnipdf/core/postprocess.py` (header/footer deduplication > 60% pages, LaTeX `$`/`$$` normalization, blank line formatting, and YAML frontmatter).
-- [x] Built `src/omnipdf/cli.py` with Typer & Rich: `omnipdf convert` and `omnipdf doctor`.
+- [x] Built `src/omnipdf/core/inspector.py` performing per-page heuristic inspection.
+- [x] Built Strategy Pattern base `src/omnipdf/core/engines/base.py` and Tier 1 `src/omnipdf/core/engines/fast_pymupdf.py` with asset image extraction.
+- [x] Built `src/omnipdf/core/postprocess.py` (header/footer deduplication, LaTeX normalization, and YAML frontmatter).
+- [x] Built `src/omnipdf/cli.py` with Typer & Rich.
 - [x] Added unit tests: `test_models.py`, `test_inspector.py`, `test_fast_pymupdf.py`, `test_postprocess.py`, `test_cli.py`.
-- [x] **Verification Gate 1 Passed:**
-  - `inspector.py` classified 100% of pages correctly across all 5 fixture documents.
-  - `clean_vn.pdf` converted to Markdown with perfect Vietnamese UTF-8 diacritics.
-  - `encrypted.pdf` rejected without password; decrypted and converted with `secret123`.
-  - `mixed.pdf` extracted embedded images into `assets/p0004_img01.png`.
+- [x] **Verification Gate 1 Passed:** 26/26 tests passed.
+- [x] Pushed commit `ef30a5e` to `https://github.com/Minha-make/pdf_to_md`.
+
+### Phase 2: Deep Layout Engine (Docling), Local VLM Fallback & Smart Router
+- [x] Added `httpx` to dependencies and installed `docling` + `rapidocr` in `.venv`.
+- [x] Built `src/omnipdf/core/engines/vlm_ollama.py` (Tier 3 VLM fallback via local Ollama `/api/chat` with multimodal image prompt and connection timeout/refusal guard).
+- [x] Built `src/omnipdf/core/engines/deep_docling.py` (Tier 2 deep layout engine integrating Docling and RapidOCR with auto CPU/CUDA hardware detection).
+- [x] Built `src/omnipdf/core/router.py` (SmartRouter with per-page dynamic routing, contiguous page grouping, batch chunking Anti-OOM, and progress callbacks).
+- [x] Updated `src/omnipdf/cli.py` to route conversions through `SmartRouter` with real-time per-page status.
+- [x] Added unit tests: `test_vlm_ollama.py`, `test_deep_docling.py`, `test_router.py`.
+- [x] **Verification Gate 2 Passed:**
+  - `omnipdf convert tests/fixtures/mixed.pdf --mode auto` confirmed multi-tier routing (Pages 1 & 4 via `pymupdf4llm`, Pages 2 & 3 via `docling`).
+  - `scanned_sim.pdf` successfully transcribed via OCR with zero digital text layer.
+  - Mock tests for `VLMOllamaEngine` confirmed response parsing and graceful fallback on connection failure.
   - `ruff check .` -> Clean (0 errors).
-  - `mypy src tests` -> Clean (0 errors across 19 files).
-  - `pytest -v` -> 26 passed in 6.34s.
+  - `mypy src tests` -> Clean (0 errors across 25 files).
+  - `pytest -v` -> 37 passed in 42.15s.

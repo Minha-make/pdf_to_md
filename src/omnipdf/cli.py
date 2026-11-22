@@ -1,8 +1,6 @@
 """Command Line Interface (CLI) for OmniPDF2MD."""
 
-import hashlib
 import sys
-import time
 import urllib.request
 from pathlib import Path
 from typing import Annotated
@@ -15,16 +13,13 @@ from rich.table import Table
 
 from omnipdf import __version__
 from omnipdf.config import settings
-from omnipdf.core.engines.fast_pymupdf import FastPyMuPDFEngine
 from omnipdf.core.inspector import inspect_pdf
 from omnipdf.core.models import (
     ConversionConfig,
     ConversionMode,
-    ConversionResult,
     EncryptedPDFError,
-    PageResult,
 )
-from omnipdf.core.postprocess import postprocess_document
+from omnipdf.core.router import convert_pdf
 
 app = typer.Typer(
     name="omnipdf",
@@ -32,15 +27,6 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console()
-
-
-def compute_sha256(path: Path) -> str:
-    """Compute SHA-256 hash of a file efficiently."""
-    hasher = hashlib.sha256()
-    with open(path, "rb") as f:
-        while chunk := f.read(65536):
-            hasher.update(chunk)
-    return hasher.hexdigest()
 
 
 @app.command("convert")
@@ -68,8 +54,6 @@ def convert(
     if not input_path.exists():
         console.print(f"[red]Error: Input file does not exist: {input_path}[/red]")
         raise typer.Exit(code=1)
-
-    start_total_time = time.perf_counter()
 
     # Normalize conversion mode
     try:
@@ -125,53 +109,18 @@ def convert(
         )
     console.print(table)
 
-    # 2. Convert pages using FastPyMuPDFEngine (Phase 1)
-    sha256_hash = compute_sha256(input_path)
-    engine = FastPyMuPDFEngine()
-    page_results: list[PageResult] = []
+    # 2. Convert pages using SmartRouter
+    def on_progress(current_page: int, total_pages: int, engine_used: str) -> None:
+        console.print(
+            f" -> Processed Page {current_page}/{total_pages} via [green]{engine_used}[/green]"
+        )
 
-    with fitz.open(str(input_path)) as doc:
-        if doc.is_encrypted and password:
-            doc.authenticate(password)
-
-        for p_profile in profiles:
-            p_num = p_profile.page_num
-            res = engine.convert_page(doc, p_num, config)
-            page_results.append(res)
-            console.print(
-                f" -> Processed Page {p_num}/{len(profiles)} via [green]{res.engine_used}[/green] ({res.processing_time_ms:.1f}ms)"
-            )
-
-    # 3. Post-processing
-    final_md = postprocess_document(
-        page_results,
-        config=config,
-        source_filename=input_path.name,
-        sha256_hash=sha256_hash,
-    )
-
-    # 4. Save output
-    output_file = output_dir / f"{input_path.stem}.md"
-    output_file.write_text(final_md, encoding="utf-8")
-
-    total_time_ms = (time.perf_counter() - start_total_time) * 1000
-    engines_used = sorted(list({r.engine_used for r in page_results}))
-
-    result = ConversionResult(
-        source_file=input_path,
-        sha256=sha256_hash,
-        total_pages=len(profiles),
-        pages=page_results,
-        full_markdown=final_md,
-        output_path=output_file,
-        engines_used=engines_used,
-        total_time_ms=round(total_time_ms, 2),
-    )
+    result = convert_pdf(input_path, config, on_progress=on_progress)
 
     console.print(
         Panel(
             f"[bold green]Conversion Succeeded![/bold green]\n"
-            f"• Output Markdown: [cyan]{output_file}[/cyan]\n"
+            f"• Output Markdown: [cyan]{result.output_path}[/cyan]\n"
             f"• Total Pages: {result.total_pages}\n"
             f"• Engines: {', '.join(result.engines_used)}\n"
             f"• Total Duration: {result.total_time_ms:.1f}ms",
@@ -215,7 +164,7 @@ def doctor() -> None:
     has_gpu = False
     gpu_detail = "CPU mode (Default)"
     try:
-        import torch  # type: ignore
+        import torch
 
         if torch.cuda.is_available():
             has_gpu = True
