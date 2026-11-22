@@ -105,7 +105,7 @@ class ConversionWorker:
             try:
                 await self._worker_task
             except asyncio.CancelledError:
-                pass
+                logger.debug("Worker task cancellation acknowledged.")
             self._worker_task = None
             logger.info("Sequential conversion worker stopped.")
 

@@ -124,10 +124,9 @@ class DeepDoclingEngine(BaseConverterEngine):
                 # Extract single page into temp PDF and convert with Docling
                 with tempfile.TemporaryDirectory() as tmp_dir:
                     temp_pdf_path = Path(tmp_dir) / f"page_{page_num}.pdf"
-                    temp_doc = fitz.open()
-                    temp_doc.insert_pdf(doc, from_page=page_idx, to_page=page_idx)
-                    temp_doc.save(str(temp_pdf_path))
-                    temp_doc.close()
+                    with fitz.open() as temp_doc:
+                        temp_doc.insert_pdf(doc, from_page=page_idx, to_page=page_idx)
+                        temp_doc.save(str(temp_pdf_path))
 
                     converter = self._get_converter()
                     conv_res = converter.convert(str(temp_pdf_path))

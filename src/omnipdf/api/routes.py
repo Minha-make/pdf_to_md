@@ -1,6 +1,7 @@
 """FastAPI routes for job submission, SSE monitoring, results, and downloads."""
 
 import hashlib
+import logging
 import os
 import sys
 import urllib.request
@@ -28,6 +29,8 @@ from omnipdf.storage.workspace import (
     get_job_workspace,
     validate_pdf_bytes,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -399,8 +402,8 @@ async def get_system_status() -> dict[str, Any]:
         if torch.cuda.is_available():
             has_cuda = True
             cuda_name = torch.cuda.get_device_name(0)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"CUDA check skipped: {e}")
 
     ollama_online = False
     try:
@@ -410,7 +413,8 @@ async def get_system_status() -> dict[str, Any]:
         with urllib.request.urlopen(req, timeout=1.0) as resp:
             if resp.status == 200:
                 ollama_online = True
-    except Exception:
+    except Exception as e:
+        logger.debug(f"Ollama status check offline: {e}")
         ollama_online = False
 
     worker = get_worker()

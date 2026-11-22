@@ -190,9 +190,9 @@ def doctor() -> None:
             if resp.status == 200:
                 ollama_status = "[green]Online[/green]"
                 ollama_detail = f"Connected to {settings.ollama_base_url}"
-    except Exception:
+    except Exception as e:
         ollama_detail = (
-            f"Service not running at {settings.ollama_base_url} (optional for VLM fallback)"
+            f"Service not running at {settings.ollama_base_url} ({e})"
         )
 
     table.add_row("Ollama VLM Service", ollama_status, ollama_detail)
@@ -232,8 +232,8 @@ def serve(
         def _launch() -> None:
             try:
                 webbrowser.open_new_tab(url)
-            except Exception:
-                pass
+            except Exception as e:
+                console.print(f"[dim]Could not open browser automatically: {e}[/dim]")
 
         timer = threading.Timer(1.2, _launch)
         timer.daemon = True
