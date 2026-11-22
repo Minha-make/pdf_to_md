@@ -74,6 +74,10 @@ export function getPdfUrl(jobId: string): string {
   return `${BASE_URL}/jobs/${jobId}/file`;
 }
 
+export function getPdfPreviewUrl(jobId: string): string {
+  return `${BASE_URL}/jobs/${jobId}/preview`;
+}
+
 export function getAssetUrl(jobId: string, assetFilename: string): string {
   // Strip any 'assets/' prefix from the filename
   const cleanName = assetFilename.replace(/^assets\//, "");

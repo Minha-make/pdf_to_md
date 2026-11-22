@@ -43,7 +43,12 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     setLoading(true);
     setError(null);
 
-    fetch(url)
+    fetch(url, {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        Accept: "application/octet-stream",
+      },
+    })
       .then((res) => {
         if (!res.ok) throw new Error(`Failed to load PDF: HTTP ${res.status}`);
         return res.arrayBuffer();

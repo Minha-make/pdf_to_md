@@ -21,15 +21,10 @@ export const App: React.FC = () => {
     try {
       const data = await listJobs();
       setJobs(data);
-
-      // Auto-select first job if none selected
-      if (!selectedJobId && data.length > 0) {
-        setSelectedJobId(data[0].id);
-      }
     } catch (err) {
       console.error("Failed to fetch jobs:", err);
     }
-  }, [selectedJobId]);
+  }, []);
 
   useEffect(() => {
     fetchJobs();

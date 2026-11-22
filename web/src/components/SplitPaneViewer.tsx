@@ -4,7 +4,7 @@ import { PDFViewer } from "./PDFViewer";
 import { MarkdownViewer } from "./MarkdownViewer";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { ExportToolbar, ViewMode } from "./ExportToolbar";
-import { getPdfUrl } from "../api";
+import { getPdfPreviewUrl } from "../api";
 import { FileText, Loader2, AlertTriangle } from "lucide-react";
 
 interface SplitPaneViewerProps {
@@ -100,7 +100,7 @@ export const SplitPaneViewer: React.FC<SplitPaneViewerProps> = ({
     );
   }
 
-  const pdfUrl = getPdfUrl(job.id);
+  const pdfUrl = getPdfPreviewUrl(job.id);
   const markdownText = editedMarkdown || result?.markdown || "";
   const hasAssets = (result?.assets?.length ?? 0) > 0;
 
