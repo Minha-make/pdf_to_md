@@ -5,7 +5,7 @@
 | **Phase 0** | Workspace Scaffolding & Synthetic Test Suite | **PASSED** | **100% Passed** (Ruff, Mypy, Pytest) | 2026-11-21 |
 | **Phase 1** | Core Architecture, Inspector, Fast Engine & CLI | **PASSED** | **100% Passed** (26/26 Tests, Gate 1) | 2026-11-21 |
 | **Phase 2** | Deep Layout Engine (Docling), Local VLM & Smart Router | **PASSED** | **100% Passed** (37/37 Tests, Gate 2) | 2026-11-21 |
-| **Phase 3** | Local Backend API, SQLite Storage & Real-time SSE | Not Started | Pending | - |
+| **Phase 3** | Local Backend API, SQLite Storage & Real-time SSE | **PASSED** | **100% Passed** (41/41 Tests, Gate 3) | 2026-11-22 |
 | **Phase 4** | Local Web Studio UI (React + Vite + Tailwind) | Not Started | Pending | - |
 | **Phase 5** | Unified Launcher, Packaging & Final Hardening | Not Started | Pending | - |
 
@@ -21,35 +21,36 @@
 - [x] Installed base dependencies in `.venv` (`pymupdf`, `pymupdf4llm`, `pillow`, `pydantic`, `typer`, `rich`, `pytest`, `ruff`, `mypy`).
 - [x] Created `tests/fixtures/generate_samples.py` generating 5 standardized synthetic PDF fixtures using TrueType Unicode font (`C:\Windows\Fonts\arial.ttf`).
 - [x] Created `tests/unit/test_fixtures_generation.py`.
-- [x] **Verification Gate 0 Passed:**
-  - `python tests/fixtures/generate_samples.py` -> 5/5 valid PDF fixtures created.
-  - `ruff check .` -> Clean (0 errors).
-  - `mypy src tests` -> Clean (0 errors across 6 files).
-  - `pytest -v` -> 5 passed in 0.53s.
-- [x] Pushed commit `8795594` to `https://github.com/Minha-make/pdf_to_md`.
+- [x] **Verification Gate 0 Passed:** 5/5 valid PDF fixtures created, Ruff/Mypy clean, Pytest passed.
+- [x] Pushed commit `8795594` to GitHub.
 
 ### Phase 1: Core Architecture, Inspector, Fast Engine & CLI
-- [x] Created `src/omnipdf/config.py` with Pydantic settings.
-- [x] Built `src/omnipdf/core/models.py` with standard Pydantic v2 schemas (`PageProfile`, `PageType`, `ConversionConfig`, `PageResult`, `ConversionResult`) and domain exceptions.
+- [x] Created `src/omnipdf/config.py` and `src/omnipdf/core/models.py`.
 - [x] Built `src/omnipdf/core/inspector.py` performing per-page heuristic inspection.
-- [x] Built Strategy Pattern base `src/omnipdf/core/engines/base.py` and Tier 1 `src/omnipdf/core/engines/fast_pymupdf.py` with asset image extraction.
-- [x] Built `src/omnipdf/core/postprocess.py` (header/footer deduplication, LaTeX normalization, and YAML frontmatter).
-- [x] Built `src/omnipdf/cli.py` with Typer & Rich.
-- [x] Added unit tests: `test_models.py`, `test_inspector.py`, `test_fast_pymupdf.py`, `test_postprocess.py`, `test_cli.py`.
+- [x] Built Strategy Pattern base `core/engines/base.py` and Tier 1 `core/engines/fast_pymupdf.py`.
+- [x] Built `core/postprocess.py` and `cli.py`.
 - [x] **Verification Gate 1 Passed:** 26/26 tests passed.
-- [x] Pushed commit `ef30a5e` to `https://github.com/Minha-make/pdf_to_md`.
+- [x] Pushed commit `ef30a5e` to GitHub.
 
 ### Phase 2: Deep Layout Engine (Docling), Local VLM Fallback & Smart Router
-- [x] Added `httpx` to dependencies and installed `docling` + `rapidocr` in `.venv`.
-- [x] Built `src/omnipdf/core/engines/vlm_ollama.py` (Tier 3 VLM fallback via local Ollama `/api/chat` with multimodal image prompt and connection timeout/refusal guard).
-- [x] Built `src/omnipdf/core/engines/deep_docling.py` (Tier 2 deep layout engine integrating Docling and RapidOCR with auto CPU/CUDA hardware detection).
-- [x] Built `src/omnipdf/core/router.py` (SmartRouter with per-page dynamic routing, contiguous page grouping, batch chunking Anti-OOM, and progress callbacks).
-- [x] Updated `src/omnipdf/cli.py` to route conversions through `SmartRouter` with real-time per-page status.
-- [x] Added unit tests: `test_vlm_ollama.py`, `test_deep_docling.py`, `test_router.py`.
-- [x] **Verification Gate 2 Passed:**
-  - `omnipdf convert tests/fixtures/mixed.pdf --mode auto` confirmed multi-tier routing (Pages 1 & 4 via `pymupdf4llm`, Pages 2 & 3 via `docling`).
-  - `scanned_sim.pdf` successfully transcribed via OCR with zero digital text layer.
-  - Mock tests for `VLMOllamaEngine` confirmed response parsing and graceful fallback on connection failure.
+- [x] Built `core/engines/vlm_ollama.py` and `core/engines/deep_docling.py`.
+- [x] Built `core/router.py` (SmartRouter with Anti-OOM chunking and contiguous page grouping).
+- [x] Updated `cli.py` to route conversions through `SmartRouter`.
+- [x] **Verification Gate 2 Passed:** 37/37 tests passed.
+- [x] Pushed commit `556a9f9` to GitHub.
+
+### Phase 3: Local Backend API, SQLite Storage & Real-time Streaming
+- [x] Built `storage/db.py` (async SQLite via `aiosqlite` with WAL mode and SHA-256 Hash Caching).
+- [x] Built `storage/workspace.py` (upload byte validation against corrupted files and ZIP bundling).
+- [x] Built `api/worker.py` (sequential queue consumer preventing concurrent OCR memory spikes, SSE pub/sub broadcaster, and job cancellation).
+- [x] Built `api/routes.py` and `api/main.py` (FastAPI app with endpoints `POST /api/jobs`, `GET /api/jobs`, `GET /api/jobs/{id}`, `GET /api/jobs/{id}/events`, `POST /api/jobs/{id}/cancel`, `GET /api/jobs/{id}/result`, `GET /api/jobs/{id}/download`, `GET /api/system/status`).
+- [x] Created `tests/integration/test_api_lifecycle.py` verifying full lifecycle.
+- [x] **Verification Gate 3 Passed:**
+  - Corrupted PDF upload correctly rejected with HTTP 400 Bad Request.
+  - End-to-end job completion with Markdown result and ZIP bundle download.
+  - Re-upload with same SHA-256 verified instantaneous Hash Cache hit (`cached: true`).
+  - Job cancellation endpoint verified.
+  - System status endpoint verified (`GET /api/system/status`).
   - `ruff check .` -> Clean (0 errors).
-  - `mypy src tests` -> Clean (0 errors across 25 files).
-  - `pytest -v` -> 37 passed in 42.15s.
+  - `mypy src tests` -> Clean (0 errors across 34 files).
+  - `pytest -v` -> 41 passed in 30.40s.
