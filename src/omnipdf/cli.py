@@ -1,12 +1,15 @@
 """Command Line Interface (CLI) for OmniPDF2MD."""
 
 import sys
+import threading
 import urllib.request
+import webbrowser
 from pathlib import Path
 from typing import Annotated
 
 import pymupdf as fitz
 import typer
+import uvicorn
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -195,6 +198,48 @@ def doctor() -> None:
     table.add_row("Ollama VLM Service", ollama_status, ollama_detail)
 
     console.print(table)
+
+
+@app.command("serve")
+def serve(
+    host: Annotated[
+        str, typer.Option("--host", "-h", help="Host interface to bind")
+    ] = "127.0.0.1",
+    port: Annotated[
+        int, typer.Option("--port", "-p", help="Port to listen on")
+    ] = 8765,
+    open_browser: Annotated[
+        bool, typer.Option("--open/--no-open", help="Automatically launch default web browser")
+    ] = True,
+    reload: Annotated[
+        bool, typer.Option("--reload", help="Enable auto-reload for development")
+    ] = False,
+) -> None:
+    """Start the OmniPDF2MD Local Web Studio and REST API server."""
+    url = f"http://{host}:{port}"
+    banner = Panel.fit(
+        f"[bold blue]OmniPDF2MD Studio v{__version__}[/bold blue]\n\n"
+        f"• Local Web Studio:   [bold green]{url}[/bold green]\n"
+        f"• API Documentation:  [cyan]{url}/docs[/cyan]\n"
+        f"• OpenAPI Schema:     [cyan]{url}/openapi.json[/cyan]\n\n"
+        "[dim]Press Ctrl+C to stop the server[/dim]",
+        title="[bold]OmniPDF2MD Server[/bold]",
+        border_style="indigo",
+    )
+    console.print(banner)
+
+    if open_browser:
+        def _launch() -> None:
+            try:
+                webbrowser.open_new_tab(url)
+            except Exception:
+                pass
+
+        timer = threading.Timer(1.2, _launch)
+        timer.daemon = True
+        timer.start()
+
+    uvicorn.run("omnipdf.api.main:app", host=host, port=port, reload=reload, log_level="info")
 
 
 if __name__ == "__main__":

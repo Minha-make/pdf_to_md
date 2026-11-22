@@ -7,7 +7,7 @@
 | **Phase 2** | Deep Layout Engine (Docling), Local VLM & Smart Router | **PASSED** | **100% Passed** (37/37 Tests, Gate 2) | 2026-11-21 |
 | **Phase 3** | Local Backend API, SQLite Storage & Real-time SSE | **PASSED** | **100% Passed** (41/41 Tests, Gate 3) | 2026-11-22 |
 | **Phase 4** | Local Web Studio UI (React + Vite + Tailwind) | **PASSED** | **100% Passed** (Vite Build, Pytest 41/41, Ruff, Mypy) | 2026-11-22 |
-| **Phase 5** | Unified Launcher, Packaging & Final Hardening | Not Started | Pending | - |
+| **Phase 5** | Unified Launcher, Packaging & Final Hardening | **PASSED** | **100% Passed** (43/43 Tests, Ruff, Mypy) | 2026-11-22 |
 
 ---
 
@@ -76,4 +76,20 @@
   - `ruff check .` -> Clean (0 errors).
   - `mypy src tests` -> Clean (0 errors across 34 files).
   - Clean git workspace with `web/node_modules/` and `web/dist/` ignored.
+
+### Phase 5: Unified Launcher, Packaging & Final Hardening
+- [x] Configured FastAPI in `src/omnipdf/api/main.py` with dynamic `web/dist` mounting, SPA fallback routing, and non-dist diagnostic landing.
+- [x] Implemented `omnipdf serve` CLI command in `src/omnipdf/cli.py` with options (`--host`, `--port`, `--open/--no-open`, `--reload`), Rich startup panel, and background browser auto-open.
+- [x] Created one-touch setup scripts:
+  - `setup.ps1` (Windows 11 PowerShell automated bootstrap).
+  - `setup.sh` (POSIX cross-platform automated bootstrap).
+- [x] Comprehensive documentation overhaul in `README.md` (features, Mermaid architecture, multi-tier comparison table, quickstart, CLI reference, Web Studio overview, NVIDIA CUDA instructions, Ollama setup, and Vietnamese typography fidelity).
+- [x] Created `tests/integration/test_serve_app.py` verifying static file serving, SPA client-side routing, static assets delivery, and fallback landing.
+- [x] Reinstalled package in editable mode (`pip install -e .`) linking `omnipdf` executable.
+- [x] **Verification Gate 5 Passed (Final Acceptance):**
+  - Full pytest suite: 43/43 tests passed in 46.18s.
+  - `ruff check .` -> Clean (0 errors).
+  - `mypy src tests` -> Clean (0 errors across 35 source files).
+  - Clean git workspace verified.
+
 
