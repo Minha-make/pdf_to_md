@@ -6,7 +6,7 @@
 | **Phase 1** | Core Architecture, Inspector, Fast Engine & CLI | **PASSED** | **100% Passed** (26/26 Tests, Gate 1) | 2026-11-21 |
 | **Phase 2** | Deep Layout Engine (Docling), Local VLM & Smart Router | **PASSED** | **100% Passed** (37/37 Tests, Gate 2) | 2026-11-21 |
 | **Phase 3** | Local Backend API, SQLite Storage & Real-time SSE | **PASSED** | **100% Passed** (41/41 Tests, Gate 3) | 2026-11-22 |
-| **Phase 4** | Local Web Studio UI (React + Vite + Tailwind) | Not Started | Pending | - |
+| **Phase 4** | Local Web Studio UI (React + Vite + Tailwind) | **PASSED** | **100% Passed** (Vite Build, Pytest 41/41, Ruff, Mypy) | 2026-11-22 |
 | **Phase 5** | Unified Launcher, Packaging & Final Hardening | Not Started | Pending | - |
 
 ---
@@ -54,3 +54,26 @@
   - `ruff check .` -> Clean (0 errors).
   - `mypy src tests` -> Clean (0 errors across 34 files).
   - `pytest -v` -> 41 passed in 30.40s.
+
+### Phase 4: Local Web Studio UI (React + Vite + Tailwind)
+- [x] Scaffolding for React 18 + TypeScript + Vite + TailwindCSS in `web/`.
+- [x] Configured Vite development proxy to `http://127.0.0.1:8765` and KaTeX rendering.
+- [x] Implemented API client `src/api.ts` and data contracts `src/types.ts`.
+- [x] Implemented SSE streaming hook `src/hooks/useJobProgress.ts` and hardware poller `src/hooks/useSystemStatus.ts`.
+- [x] Created `src/components/Header.tsx` displaying system compute device (CPU/CUDA), Ollama VLM status, and queue depth.
+- [x] Created `src/components/UploadDropzone.tsx` supporting drag-and-drop, conversion mode selection (`auto`, `fast`, `deep`), encrypted PDF password input, and image extraction options.
+- [x] Created `src/components/JobList.tsx` displaying live conversion progress bars, engine tags, and cancel action.
+- [x] Created `src/components/PDFViewer.tsx` using `pdfjs-dist` for multi-page canvas rendering, navigation, and zoom.
+- [x] Created `src/components/MarkdownViewer.tsx` using `react-markdown`, `remark-gfm`, `remark-math`, `rehype-katex`, with asset image rewriting to `/api/jobs/{id}/assets/...`.
+- [x] Created `src/components/MarkdownEditor.tsx` with live word/line counters.
+- [x] Created `src/components/ExportToolbar.tsx` for clipboard copy, `.md` download, and `.zip` download.
+- [x] Created `src/components/SplitPaneViewer.tsx` uniting side-by-side inspection.
+- [x] Added `GET /api/jobs/{job_id}/file` in backend to serve original PDF files to the web canvas renderer.
+- [x] **Verification Gate 4 Passed:**
+  - `npm run build` in `web/` succeeded with 0 TypeScript/Vite errors.
+  - `tests/integration/test_api_lifecycle.py` verified original PDF file streaming.
+  - Full pytest suite: 41/41 tests passed in 51.18s.
+  - `ruff check .` -> Clean (0 errors).
+  - `mypy src tests` -> Clean (0 errors across 34 files).
+  - Clean git workspace with `web/node_modules/` and `web/dist/` ignored.
+

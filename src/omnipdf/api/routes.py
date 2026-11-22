@@ -301,6 +301,56 @@ async def download_job_artifact(
     )
 
 
+@router.get("/jobs/{job_id}/file")
+async def get_job_original_file(job_id: str) -> FileResponse:
+    """Serve the original uploaded PDF file for in-browser rendering."""
+    worker = get_worker()
+    job = await get_job(worker.db_path, job_id)
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job '{job_id}' not found.",
+        )
+    filename = job.get("filename", "document.pdf")
+    workspace_dir = get_job_workspace(job_id)
+    pdf_path = workspace_dir / filename
+    if not pdf_path.exists() or not pdf_path.is_file():
+        pdf_candidates = list(workspace_dir.glob("*.pdf"))
+        if pdf_candidates:
+            pdf_path = pdf_candidates[0]
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Original PDF file for job '{job_id}' not found.",
+            )
+
+    return FileResponse(
+        path=str(pdf_path),
+        filename=filename,
+        media_type="application/pdf",
+    )
+
+
+@router.get("/jobs/{job_id}/assets/{filename}")
+async def get_job_asset(job_id: str, filename: str) -> FileResponse:
+    """Serve an extracted image asset for a job."""
+    safe_filename = Path(filename).name
+    workspace_dir = get_job_workspace(job_id)
+    asset_path = workspace_dir / "assets" / safe_filename
+
+    if not asset_path.exists() or not asset_path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Asset '{safe_filename}' not found for job '{job_id}'.",
+        )
+
+    return FileResponse(
+        path=str(asset_path),
+        filename=safe_filename,
+        media_type="image/png",
+    )
+
+
 @router.get("/system/status")
 async def get_system_status() -> dict[str, Any]:
     """Check hardware resources, compute engine, and Ollama connection status."""

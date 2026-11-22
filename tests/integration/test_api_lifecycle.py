@@ -93,7 +93,12 @@ async def test_full_job_lifecycle_and_caching(
     assert "BÁO CÁO KỸ THUẬT" in result_json["markdown"]
     assert "tiếng Việt" in result_json["markdown"]
 
-    # 4. Download Markdown and ZIP
+    # 4. Download Markdown, ZIP, and original PDF
+    res_file = await api_client.get(f"/api/jobs/{job_id}/file")
+    assert res_file.status_code == 200
+    assert "application/pdf" in res_file.headers.get("content-type", "")
+    assert len(res_file.content) == len(pdf_bytes)
+
     res_dl_md = await api_client.get(f"/api/jobs/{job_id}/download?format=md")
     assert res_dl_md.status_code == 200
     assert "text/markdown" in res_dl_md.headers.get("content-type", "")

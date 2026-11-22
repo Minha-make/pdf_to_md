@@ -29,6 +29,8 @@ output/
 tmp/
 temp/
 tests/fixtures/*.pdf
+web/node_modules/
+web/dist/
 
 # IDE and OS
 .idea/
