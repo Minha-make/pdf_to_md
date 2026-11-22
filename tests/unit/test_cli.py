@@ -1,6 +1,7 @@
 """Unit tests for OmniPDF CLI commands."""
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
@@ -69,3 +70,13 @@ def test_cli_convert_encrypted_pdf(fixtures_dir: Path, tmp_path: Path) -> None:
     assert "Conversion Succeeded!" in result_ok.stdout
     md_file = out_dir / "encrypted.md"
     assert md_file.exists()
+
+
+def test_cli_serve_banner() -> None:
+    """CLI serve prints banner and invokes uvicorn without Rich style errors."""
+    with patch("uvicorn.run") as mock_run:
+        result = runner.invoke(app, ["serve", "--no-open", "--port", "9999"])
+        assert result.exit_code == 0
+        assert "OmniPDF2MD Server" in result.stdout
+        assert "http://127.0.0.1:9999" in result.stdout
+        mock_run.assert_called_once()

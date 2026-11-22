@@ -224,7 +224,7 @@ def serve(
         f"• OpenAPI Schema:     [cyan]{url}/openapi.json[/cyan]\n\n"
         "[dim]Press Ctrl+C to stop the server[/dim]",
         title="[bold]OmniPDF2MD Server[/bold]",
-        border_style="indigo",
+        border_style="bright_blue",
     )
     console.print(banner)
 
