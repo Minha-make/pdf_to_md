@@ -326,8 +326,9 @@ async def get_job_original_file(job_id: str) -> FileResponse:
 
     return FileResponse(
         path=str(pdf_path),
-        filename=filename,
         media_type="application/pdf",
+        content_disposition_type="inline",
+        headers={"Content-Disposition": "inline"},
     )
 
 

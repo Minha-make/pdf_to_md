@@ -39,18 +39,26 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
   // Load document
   useEffect(() => {
     let isCancelled = false;
+    let loadingTask: any = null;
     setLoading(true);
     setError(null);
 
-    const loadingTask = pdfjsLib.getDocument({
-      url,
-      cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/cmaps/",
-      cMapPacked: true,
-    });
-
-    loadingTask.promise
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Failed to load PDF: HTTP ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((data) => {
+        if (isCancelled) return null;
+        loadingTask = pdfjsLib.getDocument({
+          data,
+          cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/cmaps/",
+          cMapPacked: true,
+        });
+        return loadingTask.promise;
+      })
       .then((doc) => {
-        if (!isCancelled) {
+        if (!isCancelled && doc) {
           setPdfDoc(doc);
           setTotalPages(doc.numPages);
           setCurrentPage(1);
@@ -70,7 +78,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
 
     return () => {
       isCancelled = true;
-      loadingTask.destroy();
+      if (loadingTask) {
+        loadingTask.destroy();
+      }
     };
   }, [url]);
 
